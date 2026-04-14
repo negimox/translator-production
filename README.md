@@ -1,2 +1,1 @@
-## Build Files for Translator Agent
-# translator-production
+# Build Files for Translator Agent
