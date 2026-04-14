@@ -109,6 +109,8 @@ class TranslationPipeline extends events_1.EventEmitter {
     ttsProvider = null;
     isRunning = false;
     processInterval = null;
+    // Rolling context for translation continuity across chunks
+    previousTranscription = "";
     // Metrics
     totalChunksReceived = 0;
     totalChunksProcessed = 0;
@@ -442,9 +444,13 @@ class TranslationPipeline extends events_1.EventEmitter {
             detectedLanguage: sttResult.detectedLanguage,
         });
         // Step 2: Translation (Mizan)
+        // Build translation input with context from previous chunk
+        const translationInput = this.previousTranscription
+            ? `[Previous: ${this.previousTranscription}]\n${transcription}`
+            : transcription;
         const translationStart = Date.now();
         const translationResult = await this.translationProvider.translate({
-            text: transcription,
+            text: translationInput,
             sourceLanguage: this.config.sourceLanguage,
             targetLanguage: this.config.targetLanguage,
         });
@@ -477,6 +483,8 @@ class TranslationPipeline extends events_1.EventEmitter {
         if (this.config.debugMode) {
             this.saveTTSDebugFile(chunk.chunkId, ttsResult.audioBuffer, transcription, translation);
         }
+        // Update rolling context for next chunk
+        this.previousTranscription = transcription;
         return {
             transcription,
             translation,
@@ -519,10 +527,14 @@ class TranslationPipeline extends events_1.EventEmitter {
             transcription: transcription.substring(0, 50),
         });
         // Step 2: Translation
+        // Build translation input with context from previous chunk
+        const translationInput = this.previousTranscription
+            ? `[Previous: ${this.previousTranscription}]\n${transcription}`
+            : transcription;
         const translationStart = Date.now();
         const templateName = this.getTranslationTemplateName();
         const translationResult = await this.mizanClient.translate({
-            text: transcription,
+            text: translationInput,
             templateName,
         });
         this.totalTranslationLatencyMs += Date.now() - translationStart;
@@ -557,6 +569,8 @@ class TranslationPipeline extends events_1.EventEmitter {
         if (this.config.debugMode) {
             this.saveTTSDebugFile(chunk.chunkId, ttsResult.audioBuffer, transcription, translation);
         }
+        // Update rolling context for next chunk
+        this.previousTranscription = transcription;
         return {
             transcription,
             translation,

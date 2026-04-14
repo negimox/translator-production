@@ -55,6 +55,12 @@ class ElevenLabsSTT {
         if (request.language) {
             formData.append("language_code", request.language);
         }
+        // Remove filler words (Yeah, Um, Uh) and false starts at model level
+        // This produces cleaner text for the translation LLM
+        formData.append("remove_disfluencies", "true");
+        // Don't tag audio events ([clicking], [music]) — we filter them anyway
+        // and suppressing at source avoids wasting pipeline cycles
+        formData.append("tag_audio_events", "false");
         logger.debug("Sending STT request", {
             url,
             language: request.language,

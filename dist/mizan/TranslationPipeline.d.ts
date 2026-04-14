@@ -105,6 +105,7 @@ export declare class TranslationPipeline extends EventEmitter {
     private ttsProvider;
     private isRunning;
     private processInterval;
+    private previousTranscription;
     private totalChunksReceived;
     private totalChunksProcessed;
     private totalChunksDropped;
