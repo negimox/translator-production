@@ -444,13 +444,9 @@ class TranslationPipeline extends events_1.EventEmitter {
             detectedLanguage: sttResult.detectedLanguage,
         });
         // Step 2: Translation (Mizan)
-        // Build translation input with context from previous chunk
-        const translationInput = this.previousTranscription
-            ? `[Previous: ${this.previousTranscription}]\n${transcription}`
-            : transcription;
         const translationStart = Date.now();
         const translationResult = await this.translationProvider.translate({
-            text: translationInput,
+            text: transcription,
             sourceLanguage: this.config.sourceLanguage,
             targetLanguage: this.config.targetLanguage,
         });
@@ -527,14 +523,10 @@ class TranslationPipeline extends events_1.EventEmitter {
             transcription: transcription.substring(0, 50),
         });
         // Step 2: Translation
-        // Build translation input with context from previous chunk
-        const translationInput = this.previousTranscription
-            ? `[Previous: ${this.previousTranscription}]\n${transcription}`
-            : transcription;
         const translationStart = Date.now();
         const templateName = this.getTranslationTemplateName();
         const translationResult = await this.mizanClient.translate({
-            text: translationInput,
+            text: transcription,
             templateName,
         });
         this.totalTranslationLatencyMs += Date.now() - translationStart;
